@@ -66,3 +66,14 @@ you can see above 👆 `commands.py` remap in `rc.conf`
 
 ## [AutoWalk](https://github.com/linusic/autowalk)
 you can AutoWalk to bulk add remap for Ranger for paths in your filesystem 
+
+
+## Others
+### JupyterLab For Ranger
+In ranger, you can open `.ipynb` on JupyterLab directly;  
+But it depends on [PM2](https://github.com/Unitech/pm2); 
+add below in your `rifle.conf`: 
+```shell
+ext ipynb  = python3 ~/ri_script/jlab_ranger.py $1
+```
+> Note: you need to adjust the paths of the script: `ri_script/jlab_ranger.py` to your `home_dir`
