@@ -57,8 +57,12 @@ eg: you can run `chrome.exe` to open `Video/Audio/PDF` and more files
   - refer from [archlinux-wiki](https://wiki.archlinux.org/title/Ranger#Compression)
   - changed: replace `atool` in ArchLinux to `WinRAR.exe` in Windows for WSL
 
-## rc.conf
-you can see above 👆 `commands.py` remap in `rc.conf`
-
 ## rifle.conf
 you can see  the type of files name `suffix` and associated WindowsOS Applications
+
+## rc.conf
+you can see above 👆 `commands.py` remap in `rc.conf`
+> end of `rc.conf` =>  `source ~/rc_remap.conf` is for AutoWalk 👇
+
+## [AutoWalk](https://github.com/linusic/autowalk)
+you can AutoWalk to bulk add remap for Ranger for paths in your filesystem 
