@@ -31,7 +31,8 @@ all my scripts follow above path format `prefix`👆
 
 ## Core Script
 - `ri_script/wsl_2_path.py` 
-- `ri_script/wsl_2_url.py`
+- `ri_script/wsl_2_abspath.py` (Just for bulkrename and Rar)
+- `ri_script/wsl_2_url.py` (For browser)
 
 > the contents of scripts are very simple.  
 > but the main idea is: `Which applications` need to be converted to `which path format`.  
