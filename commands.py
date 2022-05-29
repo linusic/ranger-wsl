@@ -2,10 +2,13 @@ from __future__ import (absolute_import, division, print_function)
 
 import os
 from ranger.api.commands import Command
+from pathlib import Path
 
 
 # Changed BulkRename by WSL Editor ( *.exe) or Raw VIM
 from commands_full import bulkrename as bk
+
+
 class bulkrename(bk):
     def execute(self):
         import sys
@@ -44,7 +47,7 @@ class bulkrename(bk):
               py3 else open(listpath, 'r')) as listfile:
 
             # limit that not allow <space> on both sides of filename (in Wslg(Windows) .exe)
-            if r1.search(conf_str):  
+            if r1.search(conf_str):
                 new_filenames = listfile.read().strip().split("\n")
                 new_filenames = [*map(str.strip, new_filenames)]
             else:
@@ -59,8 +62,8 @@ class bulkrename(bk):
         with tempfile.NamedTemporaryFile() as cmdfile:
             script_lines = []
 
-            # if not wsl app 
-            if not r1.search(conf_str):  
+            # if not wsl app
+            if not r1.search(conf_str):
                 script_lines.append("# This file will be executed when you close"
                                     " the editor.")
                 script_lines.append("# Please double-check everything, clear the"
@@ -76,7 +79,7 @@ class bulkrename(bk):
                             dir=esc(basepath)))
                         new_dirs.append(basepath)
 
-                    # for wsl app 
+                    # for wsl app
                     if r1.search(conf_str):
                         script_lines.append("mv -i -- {old} {new}".format(
                             old=esc(old), new=esc(new)))
@@ -94,7 +97,7 @@ class bulkrename(bk):
             cmdfile.flush()
 
             # for wsl app (I )
-            if r1.search(conf_str):  
+            if r1.search(conf_str):
                 self.fm.run(['/bin/sh', cmdfile.name])
 
             else:
@@ -110,7 +113,7 @@ class bulkrename(bk):
         # Retag the files, but only if the script wasn't changed during review,
         # because only then we know which are the source and destination files.
         # if not wsl app
-        if not r1.search(conf_str):  
+        if not r1.search(conf_str):
             if not script_was_edited:
                 tags_changed = False
                 for old, new in zip(filenames, new_filenames):
@@ -135,6 +138,7 @@ class mkcd(Command):
 
     Creates a directory with the name <dirname> and enters it.
     """
+
     def execute(self):
         from os.path import join, expanduser, lexists
         from os import makedirs
@@ -154,12 +158,11 @@ class mkcd(Command):
                 if s == '..' or (s.startswith('.') and not self.fm.settings['show_hidden']):
                     self.fm.cd(s)
                 else:
-                    ## We force ranger to load content before calling `scout`.
+                    # We force ranger to load content before calling `scout`.
                     self.fm.thisdir.load_content(schedule=False)
                     self.fm.execute_console('scout -ae ^{}$'.format(s))
         else:
             self.fm.notify("file/directory exists!", bad=True)
-
 
 
 # Changed that force use "fdfind" instead of get_executables()
@@ -177,10 +180,10 @@ class fzf_select(Command):
 
         # Debuged for Ranger
         ############ is a dict in for rc.conf ############
-        # print(self.fm.settings._settings)  
+        # print(self.fm.settings._settings)
 
         ########### is a list for rifle.conf #############
-        # print(dir(self.fm.settings.fm.rifle)) 
+        # print(dir(self.fm.settings.fm.rifle))
         # from pathlib import Path
         # f = Path("/mnt/d/debug/debug.txt")
 
@@ -190,10 +193,10 @@ class fzf_select(Command):
         # pp = PrettyPrinter(indent=4, stream=f.open("w"))
         # pp.pprint(content)
         ##################################################
-        
+
         # get_executables is so slowly
-            # from ranger.ext.get_executables import get_executables
-            # get_executables():
+        # from ranger.ext.get_executables import get_executables
+        # get_executables():
         # so must use fd (I think that if user can install fzf and he must can install fd by himself)
 
         # print(help(self.fm.mark_in_direction))
@@ -245,7 +248,7 @@ class fzf_mark(Command):
         but find is builtin command, so you just consider your `fzf` name
     Usage
         :fzf_mark
-        
+
         shortcut in fzf_mark:
             <CTRL-a>      : select all 
             <CTRL-e>      : deselect all 
@@ -255,11 +258,11 @@ class fzf_mark(Command):
     """
 
     def execute(self):
-        from pathlib import Path 
+        from pathlib import Path
         import os
         import subprocess
 
-        fzf_name = "fzf" 
+        fzf_name = "fzf"
 
         hidden = ('-false' if self.fm.settings.show_hidden else r"-path '*/\.*' -prune")
         exclude = r"\( -name '\.git' -o -iname '\.*py[co]' -o -fstype 'dev' -o -fstype 'proc' \) -prune"
@@ -287,60 +290,21 @@ class fzf_mark(Command):
         if fzf.returncode == 0:
             filename_list = stdout.strip().split()
             for filename in filename_list:
-                self.fm.select_file( str(Path(filename).resolve()) )
-                self.fm.mark_files(all=False,toggle=True)
+                self.fm.select_file(str(Path(filename).resolve()))
+                self.fm.mark_files(all=False, toggle=True)
 
-
-# Extract by WinRAR(WSL-Windows)
-from ranger.core.loader import CommandLoader
-
-class extract_here(Command):
-
-    def execute(self):
-        """ extract selected files to current directory."""
-        def update_obj_path(marked_files):
-            for marked_file_obj in marked_files:
-                marked_file_obj.path = f'{marked_file_obj.path[5]}:/{marked_file_obj.path[7:]}'
-        win_rar = '/mnt/c/Program Files/WinRAR/unRar.exe' #   x -mt8 100.rar  / x -mt8 -ad 100.rar 
-
-        cwd = self.fm.thisdir
-        marked_files = tuple(cwd.get_selection())
-
-        def refresh(_):
-            cwd = self.fm.get_directory(original_path)
-            cwd.load_content()
-
-        update_obj_path(marked_files)
-        one_file = marked_files[0]
-        cwd = self.fm.thisdir
-
-        original_path = cwd.path
-        # win_rar_args = ['x', '-mt8'] # to abs_path
-        win_rar_args = ['e', '-mt8'] # to rel_path
-        win_rar_args += self.line.split()[1:]
-        
-        self.fm.copy_buffer.clear()
-
-        self.fm.cut_buffer = False
-        if len(marked_files) == 1:
-            descr = "extracting: " + os.path.basename(one_file.path)
-            win_rar_args += ['-ad']
-        else:
-            win_rar_args += ['-ad']
-            descr = "extracting files from: " + os.path.basename(
-                one_file.dirname)
-
-        for one_mark_file in marked_files:
-            obj = CommandLoader(args=[win_rar] + win_rar_args
-                    + [one_mark_file.path], descr=descr,read=True)
-            obj.signal_bind('after', refresh)
-            self.fm.loader.add(obj)
 
 
 # Compress by WinRAR(WSL-Windows)
 from ranger.core.loader import CommandLoader
 
 class compress(Command):
+
+    winrar_compress_thread = ["-mt8"]
+    winrar_compress_password = []
+    winrar_compress_password_with_name = []
+
+
     def execute(self):
         """ Compress marked files to current directory """
 
@@ -356,29 +320,158 @@ class compress(Command):
         cwd = self.fm.thisdir
         marked_files = cwd.get_selection()
 
-        # thread 8
-        win_rar_args = ['x', '-mt8']
-        win_rar_args += self.line.split()[1:]
-        
+        win_rar = '/mnt/c/Program Files/WinRAR/Rar.exe' #    a -r new_dir.rar 123-12.md 123-12515.py
+
+        # just password
+        if self.winrar_compress_password:
+            user_input_password = self.line.split()[1]
+            dst_file_name = self.line.split()[2]
+            pwd_args_list = [ self.winrar_compress_password[0] + user_input_password]
+        # password + hidden filename
+        elif self.winrar_compress_password_with_name:
+            user_input_password = self.line.split()[1]
+            dst_file_name = self.line.split()[2]
+            pwd_args_list = [ self.winrar_compress_password_with_name[0] + user_input_password]
+        # nothing done
+        else:
+            dst_file_name = self.line.split()[1]
+            pwd_args_list = []  
+
+        win_rar_args = ['a'] + self.winrar_compress_thread + pwd_args_list
+
         update_obj_path(marked_files)
         if not marked_files:
             return
 
-        win_rar = '/mnt/c/Program Files/WinRAR/Rar.exe' #    a -r new_dir.rar 123-12.md 123-12515.py
         original_path = cwd.path
-
-        dst_file_name = self.line.split()[1]
-        win_rar_args = ["a", "-r"]
         descr = "compressing files in: " + os.path.basename(dst_file_name)
+        
         obj = CommandLoader(args=[win_rar] + win_rar_args + [dst_file_name] + \
-                [os.path.relpath(f.path, cwd.path) for f in marked_files], descr=descr, read=True)
+                [Path(f.path).name for f in marked_files], descr=descr, read=True)
 
         obj.signal_bind('after', refresh)
         self.fm.loader.add(obj)
 
     def tab(self, tabnum):
         """ Complete with current folder name """
-        import time
-        time.sleep(100)
         extension = ['.zip', '.tar.gz', '.rar', '.7z']
-        return ['compress ' + os.path.basename(self.fm.thisdir.path) + ext for ext in extension]
+        return ['compress ' + Path(self.fm.thisdir.path).name + ext for ext in extension]
+
+
+class compress_with_password(compress):
+    winrar_compress_password = ["-p"]
+
+
+class compress_with_password_with_filename(compress):
+    winrar_compress_password_with_name = ["-hp"]
+
+# Extract by WinRAR(WSL-Windows)
+from ranger.core.loader import CommandLoader
+
+class ExtractBase(Command):
+    """ default extract to current dir """
+
+    # default set 8 thread
+    winrar_extract_thread = ["-mt8"]
+
+    # winrar_extract_to_newdir = ["-ad"]
+    winrar_extract_to_newdir = []
+
+    # winrar_extract_overwrite = ["-o+"]
+    winrar_extract_overwrite = []
+
+    # winrar_extract_password = ["-p"]
+    winrar_extract_password = []
+
+
+    def execute(self):
+        """ extract selected files to current directory."""
+        def update_obj_path(marked_files):
+            for marked_file_obj in marked_files:
+                marked_file_obj.path = f'{marked_file_obj.path[5]}:/{marked_file_obj.path[7:]}'
+        win_rar = '/mnt/c/Program Files/WinRAR/unRar.exe' 
+
+        cwd = self.fm.thisdir
+        marked_files = tuple(cwd.get_selection())
+
+        def refresh(_):
+            cwd = self.fm.get_directory(original_path)
+            cwd.load_content()
+
+        update_obj_path(marked_files)
+        one_file = marked_files[0]
+        cwd = self.fm.thisdir
+
+
+        if self.winrar_extract_password:
+            user_input_password = self.line.split()[1]
+            pwd_args_list = [ self.winrar_extract_password[0] + user_input_password]
+            rar_file_list = self.line.split()[2:]
+        else:
+            pwd_args_list = []
+            rar_file_list = self.line.split()[1:]
+
+        original_path = cwd.path
+        win_rar_args = ['e'] + ExtractBase.winrar_extract_thread + \
+            self.winrar_extract_to_newdir + \
+            self.winrar_extract_overwrite + \
+            pwd_args_list
+
+        win_rar_args += rar_file_list
+
+        self.fm.copy_buffer.clear()
+
+        self.fm.cut_buffer = False
+        if len(marked_files) == 1:
+            descr = "extracting: " + os.path.basename(one_file.path)
+        else:
+            descr = "extracting files from: " + os.path.basename(one_file.dirname)
+
+
+        for one_mark_file in marked_files:
+            obj = CommandLoader(args=[win_rar] + win_rar_args
+                                + [one_mark_file.path], descr=descr, read=True)
+            obj.signal_bind('after', refresh)
+            self.fm.loader.add(obj)
+
+
+# Single
+class extract_new_dir(ExtractBase):
+    """ dir auto named with rar-file-name """
+    winrar_extract_to_newdir = ["-ad"]
+
+
+class extract_overwrite(ExtractBase):
+    """ if exist; then overwrite """
+    winrar_extract_overwrite = ["-o+"]
+
+class extract_with_password(ExtractBase):
+    winrar_extract_password = ["-p"]
+
+# map t.  extract_current_dir  (not overwrite)
+class extract_current_dir(ExtractBase):
+    """ default extract to current dir """
+    ...
+
+# Combine
+# map te extract_new_overwrite
+class extract_new(
+    extract_new_dir,
+):
+    ...
+
+# map to extract_new_overwrite
+class extract_new_overwrite(
+    extract_new_dir,
+    extract_overwrite
+):
+    ...
+
+
+# map tpe extract_with_new_overwrite_password
+class extract_with_new_overwrite_password(
+    extract_new_dir,
+    extract_overwrite,
+    extract_with_password,
+):
+    ...
