@@ -77,3 +77,18 @@ add below in your `rifle.conf`:
 ext ipynb  = python3 ~/ri_script/jlab_ranger.py $1
 ```
 > Note: you need to adjust the paths of the script: `ri_script/jlab_ranger.py` to your `home_dir`
+
+### Launch WSL Application on Windows directly
+Maybe some configure didn't work with `wsl.exe  --exec`,  you can try 👇
+
+put source application configure into `/etc/profile`
+> Q: Why `/etc/profile` rather than `~/.zshrc` ?  
+> A: Decoupling makes `bash` faster than `zsh` for launching (Ranger just needs `fzf configure`)
+
+```shell
+echo '[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh' >> /etc/profile
+```
+then put below code into your windows app manager (Lnk ...)
+```shell
+wsl.exe  --exec /bin/zsh -c "source /etc/profile && ranger /mnt/d/test"
+```
