@@ -11,6 +11,10 @@ You can run WindowsOS Applications in your WSL-Ranger
 - ...
 - If WindowsOS App provides a command line to start, then you can integrate them into WSL-Ranger
 
+## Requirements
+You need to have the following:
+- 🔥 **Python3.6 +**
+
 ## Instructions
 my `WSL` path format is default, so the `prefix` is :👇
 ```shell
