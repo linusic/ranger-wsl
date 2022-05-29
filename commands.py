@@ -315,7 +315,8 @@ class extract_here(Command):
         cwd = self.fm.thisdir
 
         original_path = cwd.path
-        win_rar_args = ['x', '-mt8']
+        # win_rar_args = ['x', '-mt8'] # to abs_path
+        win_rar_args = ['e', '-mt8'] # to rel_path
         win_rar_args += self.line.split()[1:]
         
         self.fm.copy_buffer.clear()
